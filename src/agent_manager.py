@@ -1,5 +1,5 @@
 """
-Agent management functionality for the 2n Agents system.
+Agent management functionality for the cc Agents system.
 Handles creation, syncing, and management of agents with dual scope support.
 """
 

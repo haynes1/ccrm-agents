@@ -1,5 +1,5 @@
 """
-Error handling and logging for the 2n Agents system.
+Error handling and logging for the cc Agents system.
 Provides clear, actionable error messages to users.
 """
 
@@ -31,7 +31,7 @@ class ErrorHandler:
             level=logging.INFO,
             format='%(asctime)s - %(levelname)s - %(message)s',
             handlers=[
-                logging.FileHandler('2n_agents.log'),
+                logging.FileHandler('cc_agents.log'),
                 logging.StreamHandler(sys.stdout)
             ]
         )
@@ -164,7 +164,7 @@ class ErrorHandler:
         
         # Add general tips
         tips.extend([
-            "Check the log file: `tail -f 2n_agents.log`",
+            "Check the log file: `tail -f cc_agents.log`",
             "Run with verbose logging for more details",
             "Try the operation with a smaller scope first"
         ])

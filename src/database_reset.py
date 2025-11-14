@@ -1,5 +1,5 @@
 """
-Database reset script for the 2n Agents system.
+Database reset script for the cc Agents system.
 Clears all data and reinitializes the database.
 """
 
@@ -46,7 +46,7 @@ def reset_database():
 
 def main():
     """Main function."""
-    print("🔄 Resetting 2n Agents database...")
+    print("🔄 Resetting cc Agents database...")
     print("⚠️  This will delete ALL data in the database!")
     
     response = input("Are you sure you want to continue? (yes/no): ")

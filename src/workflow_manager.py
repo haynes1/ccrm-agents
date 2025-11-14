@@ -1,5 +1,5 @@
 """
-Workflow management functionality for the 2n Agents system.
+Workflow management functionality for the cc Agents system.
 Handles creation, syncing, and management of agentic workflows with dual scope support.
 """
 

@@ -1,5 +1,5 @@
 """
-Configuration and database connection management for the 2n Agents system.
+Configuration and database connection management for the cc Agents system.
 """
 
 import os

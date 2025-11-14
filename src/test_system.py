@@ -1,5 +1,5 @@
 """
-Test script for the 2n Agents system.
+Test script for the cc Agents system.
 Verifies that the new system works correctly with database and file operations.
 """
 
@@ -106,7 +106,7 @@ def test_scope_validation():
 
 def main():
     """Run all tests."""
-    print("🚀 Testing 2n Agents System...")
+    print("🚀 Testing cc Agents System...")
     print("=" * 50)
     
     try:
