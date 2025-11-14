@@ -9,8 +9,9 @@
     {
       "id": "4b57eb26-0520-4c41-91ad-42a6df4676aa",
       "workflowId": "test-workflow",
-      "nodeType": "AGENT",
-      "nodeName": "Start"
+      "nodeType": "TOOL_EXECUTOR",
+      "nodeName": "Start",
+      "agentId": null
     }
   ],
   "edges": []

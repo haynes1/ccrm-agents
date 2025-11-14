@@ -20,12 +20,12 @@ def reset_database():
             
             # Clear all tables in reverse dependency order
             tables_to_clear = [
-                "metadata.agent_workflow_edge",
-                "metadata.agent_workflow_node", 
-                "metadata.agent_workflow",
-                "metadata.agent_tool",
-                "metadata.agent",
-                "metadata.tool"
+                "system_agent_workflow_edge",
+                "system_agent_workflow_node",
+                "system_agent_workflow",
+                "system_agent_tool",
+                "system_agent",
+                "system_tool"
             ]
             
             for table in tables_to_clear:

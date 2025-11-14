@@ -32,10 +32,13 @@ class AgentManager:
 
     def _get_table_name(self, scope: Scope) -> str:
         """Get the correct table name based on the scope."""
+        # CCRM only has system_agent table (no schema prefix, no common_background variant)
         if scope == Scope.SYSTEM:
-            return "metadata.system_agent"
+            return "system_agent"
         elif scope == Scope.COMMON_BACKGROUND:
-            return "metadata.common_background_agent"
+            # For now, CCRM doesn't have a separate common_background_agent table
+            # We'll use system_agent and track scope in the local files only
+            return "system_agent"
         else:
             raise ValueError(f"Invalid scope: {scope}")
     
@@ -46,8 +49,8 @@ class AgentManager:
         
         # Create agent in database
         self.cursor.execute(f"""
-            INSERT INTO {table_name} 
-            (id, name, description, "systemPrompt", "llmModelId", "isDefault")
+            INSERT INTO {table_name}
+            (id, name, description, system_prompt, llm_model_id, is_default)
             VALUES (%s, %s, %s, %s, %s, %s)
             RETURNING id
         """, (
@@ -55,7 +58,7 @@ class AgentManager:
             name,
             description,
             system_prompt or f"You are {name}, a helpful AI assistant.",
-            'gpt-4',
+            'claude-sonnet-4-20250514',
             False
         ))
         
@@ -107,20 +110,21 @@ class AgentManager:
         
         # Upsert agent
         self.cursor.execute(f"""
-            INSERT INTO {table_name} 
-            (id, name, description, "systemPrompt", "llmModelId", "isDefault")
+            INSERT INTO {table_name}
+            (id, name, description, system_prompt, llm_model_id, is_default)
             VALUES (%s, %s, %s, %s, %s, %s)
             ON CONFLICT (id) DO UPDATE SET
                 name = EXCLUDED.name,
                 description = EXCLUDED.description,
-                "systemPrompt" = EXCLUDED."systemPrompt",
-                "updatedAt" = NOW()
+                system_prompt = EXCLUDED.system_prompt,
+                llm_model_id = EXCLUDED.llm_model_id,
+                updated_at = NOW()
         """, (
             agent_id,
             name,
             schema.get('description', ''),
             system_prompt,
-            'gpt-4',
+            'claude-sonnet-4-20250514',
             False
         ))
         
@@ -149,32 +153,23 @@ class AgentManager:
         
         # Create local files
         self._create_agent_files(
-            name, 
-            agent['id'], 
-            scope, 
+            name,
+            agent['id'],
+            scope,
             agent['description'] or '',
-            agent['systemPrompt']
+            agent['system_prompt']
         )
         
         return agent['id']
     
     def list_agents(self, scope: Optional[Scope] = None) -> List[Dict]:
         """List all agents, optionally filtered by scope."""
-        if scope:
-            table_name = self._get_table_name(scope)
-            query = f"SELECT *, '{scope.value}' as scope FROM {table_name} ORDER BY name"
-            self.cursor.execute(query)
-        else:
-            system_table = self._get_table_name(Scope.SYSTEM)
-            common_table = self._get_table_name(Scope.COMMON_BACKGROUND)
-            query = f"""
-                SELECT *, 'SYSTEM' as scope FROM {system_table}
-                UNION ALL
-                SELECT *, 'COMMON_BACKGROUND' as scope FROM {common_table}
-                ORDER BY name
-            """
-            self.cursor.execute(query)
-            
+        # CCRM only has system_agent table, so we query it directly
+        # Scope is tracked in local file metadata, not in database
+        table_name = self._get_table_name(Scope.SYSTEM)
+        query = f"SELECT *, 'SYSTEM' as scope FROM {table_name} ORDER BY name"
+        self.cursor.execute(query)
+
         return [dict(row) for row in self.cursor.fetchall()]
     
     def delete_agent(self, name: str, scope: Scope) -> bool:

@@ -31,69 +31,75 @@ class WorkflowManager:
 
     def _get_table_name(self, scope: Scope, resource: ResourceType) -> str:
         """Get the correct table name based on the scope and resource type."""
-        prefix = "system" if scope == Scope.SYSTEM else "common_background"
+        # CCRM only has system_ tables (no schema prefix, no common_background variants)
         if resource == ResourceType.WORKFLOW:
-            return f"metadata.{prefix}_agent_workflow"
+            return "system_agent_workflow"
         elif resource == ResourceType.WORKFLOW_NODE:
-            return f"metadata.{prefix}_agent_workflow_node"
+            return "system_agent_workflow_node"
         elif resource == ResourceType.WORKFLOW_EDGE:
-            return f"metadata.{prefix}_agent_workflow_edge"
+            return "system_agent_workflow_edge"
         elif resource == ResourceType.AGENT:
-            return f"metadata.{prefix}_agent"
+            return "system_agent"
         else:
             raise ValueError(f"Invalid resource type for table name: {resource}")
 
     def _validate_agent_exists(self, agent_id: str) -> Optional[Scope]:
-        """Validate that an agent exists in either scope and return the scope."""
+        """Validate that an agent exists and return the scope."""
         if not agent_id:
-            return None 
+            return None
 
-        system_agent_table = self._get_table_name(Scope.SYSTEM, ResourceType.AGENT)
-        common_agent_table = self._get_table_name(Scope.COMMON_BACKGROUND, ResourceType.AGENT)
+        agent_table = self._get_table_name(Scope.SYSTEM, ResourceType.AGENT)
 
-        self.cursor.execute(f"SELECT id FROM {system_agent_table} WHERE id = %s", (agent_id,))
+        self.cursor.execute(f"SELECT id FROM {agent_table} WHERE id = %s", (agent_id,))
         if self.cursor.fetchone():
             return Scope.SYSTEM
-            
-        self.cursor.execute(f"SELECT id FROM {common_agent_table} WHERE id = %s", (agent_id,))
-        if self.cursor.fetchone():
-            return Scope.COMMON_BACKGROUND
-            
+
         return None
     
     def sync_workflow_to_db(self, workflow_id: str, scope: Scope) -> str:
         """Sync a single workflow from local files to database using a literal 1-to-1 mapping."""
         workflow_dir = os.path.join(get_definitions_path(scope, ResourceType.WORKFLOW), workflow_id)
-        
+
         if not os.path.exists(workflow_dir):
             raise FileNotFoundError(f"Workflow directory not found: {workflow_dir}")
-        
+
         with open(os.path.join(workflow_dir, 'workflow.json'), 'r') as f:
             workflow_data = json.load(f)
-        
-        workflow_table = self._get_table_name(scope, ResourceType.WORKFLOW)
 
+        workflow_table = self._get_table_name(scope, ResourceType.WORKFLOW)
+        entrypoint_node_id = workflow_data.get('entrypointNodeId')
+
+        # Step 1: Insert/update workflow WITHOUT entrypoint_node_id to avoid FK constraint violation
         self.cursor.execute(f"""
             INSERT INTO {workflow_table}
-            (id, name, description, entrypoint_node_id, "isConversational")
-            VALUES (%s, %s, %s, %s, %s)
+            (id, name, description, entrypoint_node_id, is_conversational)
+            VALUES (%s, %s, %s, NULL, %s)
             ON CONFLICT (id) DO UPDATE SET
                 name = EXCLUDED.name,
                 description = EXCLUDED.description,
-                entrypoint_node_id = EXCLUDED.entrypoint_node_id,
-                "isConversational" = EXCLUDED."isConversational",
+                is_conversational = EXCLUDED.is_conversational,
                 updated_at = NOW()
         """, (
             workflow_data['id'],
             workflow_data['name'],
             workflow_data.get('description', ''),
-            workflow_data.get('entrypointNodeId'),
             workflow_data.get('isConversational', False)
         ))
-        
+
+        # Step 2: Sync nodes (now they can be created)
         self._sync_workflow_nodes(workflow_id, workflow_data.get('nodes', []), scope)
+
+        # Step 3: Sync edges
         self._sync_workflow_edges(workflow_id, workflow_data.get('edges', []), scope)
-        
+
+        # Step 4: Update workflow with entrypoint_node_id now that nodes exist
+        if entrypoint_node_id:
+            self.cursor.execute(f"""
+                UPDATE {workflow_table}
+                SET entrypoint_node_id = %s, updated_at = NOW()
+                WHERE id = %s
+            """, (entrypoint_node_id, workflow_id))
+
         self.conn.commit()
         return workflow_id
     
@@ -150,10 +156,10 @@ class WorkflowManager:
         if not workflow:
             raise ValueError(f"Workflow {workflow_id} not found in database with scope {scope.value}")
         
-        self.cursor.execute(f'SELECT * FROM {node_table} WHERE "workflowId" = %s', (workflow_id,))
+        self.cursor.execute(f'SELECT * FROM {node_table} WHERE workflow_id = %s', (workflow_id,))
         nodes = [dict(row) for row in self.cursor.fetchall()]
-        
-        self.cursor.execute(f'SELECT * FROM {edge_table} WHERE "workflowId" = %s', (workflow_id,))
+
+        self.cursor.execute(f'SELECT * FROM {edge_table} WHERE workflow_id = %s', (workflow_id,))
         edges = [dict(row) for row in self.cursor.fetchall()]
         
         workflow_dir = os.path.join(get_definitions_path(scope, ResourceType.WORKFLOW), workflow_id)
@@ -338,10 +344,10 @@ class WorkflowManager:
         if not workflow:
             return {"valid": False, "errors": [f"Workflow {workflow_id} in scope {scope.value} does not exist"]}
         
-        self.cursor.execute(f'SELECT * FROM {node_table} WHERE "workflowId" = %s', (workflow_id,))
+        self.cursor.execute(f'SELECT * FROM {node_table} WHERE workflow_id = %s', (workflow_id,))
         nodes = [dict(row) for row in self.cursor.fetchall()]
-        
-        self.cursor.execute(f'SELECT * FROM {edge_table} WHERE "workflowId" = %s', (workflow_id,))
+
+        self.cursor.execute(f'SELECT * FROM {edge_table} WHERE workflow_id = %s', (workflow_id,))
         edges = [dict(row) for row in self.cursor.fetchall()]
         
         errors = []
