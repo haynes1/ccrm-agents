@@ -1,0 +1,155 @@
+{
+  "agentId": "8c9b9b73-7897-480f-94bc-f0c612411d6a",
+  "description": "",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are part of the 2ndNature AI system, specializing in creating, updating, and deleting records.\n\n---\n\n### **Your Core Task:**\n\nYou have been activated because the system determined that the user's query is about creating, updating, or deleting a specific record. Your goal is to **execute the user's request** using the available tools, relying heavily on the context of what the user is currently viewing on their page.\n\nIf the user's request is unclear, you can ask clarifying questions before proceeding.\n\n### **Action Protocol:**\n\n1.  **Analyze the Request & Context:** Look at the user's last message in the `chat_history` and the `pageContext`. The `pageContext` is your most critical data source and contains the information you need to identify the specific record(s) the user is referring to.\n2.  **Execute with Tools:**\n    *   **Creating Records:** If the user wants to create a new record (e.g., \"add a new contact\"), use the `createRecord` tool.\n    *   **Updating Records:** If the user wants to modify an existing record (e.g., \"change this person's email address\"), use the `updateRecord` tool. You must get the `id` and `objectName` from the `pageContext`.\n    *   **Deleting Records:** If the user wants to remove a record (e.g., \"delete this contact\"), use the `deleteRecord` tool. You must get the `id` and `objectName` from the `pageContext`.\n3.  **Handle Out-of-Scope Requests:**\n    *   If the request is not about creating, updating, or deleting a record (for instance, asking to perform a data model change like \"add a 'Birthday' field to contacts?\"), you **must** use the `return_to_supervisor` tool.\n4.  **Complete Your Turn:** After you have completed your analysis and any resulting tool call, you **must** call the `end` tool to signal that your task is complete. This is a mandatory final step.\n\n---\n\n### **Guiding Principles:**\n\n*   **Be Direct:** You are a record-focused agent. Get straight to the point of executing the user's request.\n*   **Rely on Context:** Trust that the `pageContext` has the information you need. Avoid asking the user for IDs or object names and never make up object names or ids.\n*   **Know Your Limits:** If the request is not about creating, updating, or deleting a record, you **must** use the `return_to_supervisor` tool."
+    }
+  ],
+  "tools": [
+    {
+      "toolId": "b2756a4e-02f3-4fab-8bb8-1f676c9e804e",
+      "type": "function",
+      "function": {
+        "name": "test_tool",
+        "description": "A simple test function",
+        "parameters": {
+          "type": "function",
+          "toolId": "b2756a4e-02f3-4fab-8bb8-1f676c9e804e",
+          "function": {
+            "name": "test_tool",
+            "parameters": {
+              "type": "object",
+              "required": [
+                "test_property"
+              ],
+              "properties": {
+                "test_property": {
+                  "type": "string",
+                  "description": "A random string"
+                }
+              }
+            },
+            "description": "A simple test function"
+          },
+          "execution_location": "client"
+        }
+      },
+      "internalApiPath": null
+    },
+    {
+      "toolId": "6172ac8a-a215-4954-8f1d-ef28b839d5b6",
+      "type": "function",
+      "function": {
+        "name": "createRecord",
+        "description": "Creates a new record in the system. Use this when you need to create a new person, company, or any other object. You MUST use exact field names from the workspace schema context and follow the correct data structure for composite fields.",
+        "parameters": {
+          "type": "function",
+          "toolId": "6172ac8a-a215-4954-8f1d-ef28b839d5b6",
+          "function": {
+            "name": "createRecord",
+            "parameters": {
+              "type": "object",
+              "required": [
+                "objectName",
+                "data"
+              ],
+              "properties": {
+                "data": {
+                  "type": "object",
+                  "description": "The data for the new record. Use exact field names from the workspace schema context and follow the correct data structure for composite fields (e.g., name: {firstName, lastName}, emails: {primaryEmail, additionalEmails})."
+                },
+                "objectName": {
+                  "type": "string",
+                  "description": "The type of object to create. This must always be sourced from PageSpecificContext in PageContext"
+                }
+              }
+            },
+            "description": "Creates a new record in the system. Use this when you need to create a new person, company, or any other object. Do not assume any fields are required. That will be handled by the api later"
+          },
+          "internalApiPath": "/api/records/create",
+          "execution_location": "client"
+        }
+      },
+      "internalApiPath": "/api/records/create"
+    },
+    {
+      "toolId": "d8d1008b-7326-4f5a-aed0-c5b81cb13b2e",
+      "type": "function",
+      "function": {
+        "name": "updateRecord",
+        "description": "Updates an existing record in the system. Use this when you need to modify a person, company, or any other object. The system will automatically track what changed, create timeline entries, and handle related records. You must provide the record's ID and the fields you want to update.",
+        "parameters": {
+          "type": "function",
+          "toolId": "d8d1008b-7326-4f5a-aed0-c5b81cb13b2e",
+          "function": {
+            "name": "updateRecord",
+            "parameters": {
+              "type": "object",
+              "required": [
+                "objectName",
+                "id",
+                "data"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "The unique identifier of the record to update. This is required to ensure we're modifying the correct record."
+                },
+                "data": {
+                  "type": "object",
+                  "description": "The fields to update and their new values. Only include the fields you want to change. The system will automatically track what changed and create appropriate timeline entries."
+                },
+                "objectName": {
+                  "type": "string",
+                  "description": "The type of object to update. This must always be sourced from PageSpecificContext in PageContext"
+                }
+              }
+            },
+            "description": "Updates an existing record in the system. Use this when you need to modify a person, company, or any other object. The system will automatically track what changed, create timeline entries, and handle related records. You must provide the record's ID and the fields you want to update."
+          },
+          "internalApiPath": "/api/records/update",
+          "execution_location": "client"
+        }
+      },
+      "internalApiPath": "/api/records/update"
+    },
+    {
+      "toolId": "f035f527-3f5d-4fd8-aa5c-6cf9131724e1",
+      "type": "function",
+      "function": {
+        "name": "deleteRecord",
+        "description": "deletes an existing record in the system",
+        "parameters": {
+          "type": "function",
+          "toolId": "f035f527-3f5d-4fd8-aa5c-6cf9131724e1",
+          "function": {
+            "name": "deleteRecord",
+            "parameters": {
+              "type": "object",
+              "required": [
+                "objectName",
+                "id"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "The unique identifier of the record to update. This is required to ensure we're modifying the correct record."
+                },
+                "objectName": {
+                  "type": "string",
+                  "description": "The type of object to update. This must always be sourced from PageSpecificContext in PageContext"
+                }
+              }
+            },
+            "description": "deletes an existing record in the system"
+          },
+          "internalApiPath": "/api/records/delete",
+          "execution_location": "client"
+        }
+      },
+      "internalApiPath": "/api/records/delete"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "agentId": "c2858b99-a937-4d64-88f5-9b7e75298a44",
+  "description": "This agent receives research results from the externalSearchCaller and synthesizes them into a final answer for the user.",
+  "messages": [
+    {
+      "role": "system",
+      "content": ""
+    }
+  ],
+  "tools": []
+}

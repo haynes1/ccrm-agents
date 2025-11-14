@@ -1,0 +1,17 @@
+{
+  "id": "test-workflow",
+  "name": "Test Workflow",
+  "description": "A test workflow",
+  "scope": "SYSTEM",
+  "isConversational": false,
+  "entrypointNodeId": "4b57eb26-0520-4c41-91ad-42a6df4676aa",
+  "nodes": [
+    {
+      "id": "4b57eb26-0520-4c41-91ad-42a6df4676aa",
+      "workflowId": "test-workflow",
+      "nodeType": "AGENT",
+      "nodeName": "Start"
+    }
+  ],
+  "edges": []
+}

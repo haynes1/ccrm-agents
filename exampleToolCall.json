@@ -1,0 +1,25 @@
+// Part of the LLM's response when it decides to call one or more tools
+// This would typically be within the 'message' object of a 'choice'
+{
+    "role": "assistant",
+    "content": null, // Or potentially some introductory text with models like Anthropic's
+    "tool_calls": [ // An array, as the LLM might request multiple tool calls
+      {
+        "id": "call_JkS7Nq8dCg0pL3xR2fA1oB6m", // A unique ID for this specific tool call request
+        "type": "function", // Indicates the type of tool call
+        "function": {
+          "name": "get_user_details", // The name of the tool you defined
+          "arguments": "{\"user_id\": \"12345\", \"fields\": [\"email\", \"phone\"]}" // A JSON string representing the arguments
+        }
+      }
+      // Potentially another tool call object here if the LLM decides to call multiple tools
+      // {
+      //   "id": "call_XyZ1aB2cD3eF4gH5iJ6k",
+      //   "type": "function",
+      //   "function": {
+      //     "name": "add_crm_note",
+      //     "arguments": "{\"user_id\": \"12345\", \"note\": \"User inquired about enterprise plan.\"}"
+      //   }
+      // }
+    ]
+  }

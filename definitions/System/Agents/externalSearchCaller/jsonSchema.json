@@ -1,0 +1,33 @@
+{
+  "agentId": "5a7a7266-a29e-4c7c-b635-2a48810014a7",
+  "description": "This agent receives a user request, breaks it down into a series of search queries, and executes them.",
+  "messages": [
+    {
+      "role": "system",
+      "content": ""
+    }
+  ],
+  "tools": [
+    {
+      "toolId": "a909a347-9b63-4416-9e90-255d6174d812",
+      "type": "function",
+      "function": {
+        "name": "external_research",
+        "description": "Performs a web search to find up-to-date information on a given topic. Use this for current events, facts, or any external knowledge.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "description": "The detailed search query."
+            }
+          },
+          "required": [
+            "query"
+          ]
+        }
+      },
+      "internalApiPath": "/external/tvly-search"
+    }
+  ]
+}

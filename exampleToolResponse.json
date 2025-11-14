@@ -1,0 +1,28 @@
+// This is an object that would be part of the 'messages' array
+// in your NEXT request to the Claude Messages API.
+{
+    "role": "user", // The message containing the tool result is from the "user" role
+    "content": [
+      {
+        "type": "tool_result",
+        "tool_use_id": "toolu_xxxxxxxxxxxxxx", // <-- This MUST match the 'id' from the 'tool_use' block Claude sent you
+        "content": "This is the successful output string from my tool."
+        // OR for structured output (e.g., JSON), provide it as a string or an array of text/JSON content blocks:
+        // "content": "[{\"data_point_1\": \"value_1\", \"data_point_2\": 123}]"
+        // OR if your tool produced multiple pieces of content for this result:
+        // "content": [
+        //   {"type": "text", "text": "The user's email is example@example.com."},
+        //   {"type": "json", "json": {"email_verified": true, "domain_age": 5}} // Fictional 'json' content block type for example clarity
+        // ]
+        // For actual structured data, stringifying JSON into a text block is common:
+        // "content": [
+        //    {"type": "text", "text": "{\"email\": \"example@example.com\", \"status\": \"verified\"}"}
+        // ]
+      }
+      // You can optionally include other text content blocks from the "user" in this same message if needed:
+      // {
+      //   "type": "text",
+      //   "text": "Okay, I've run the tool as requested."
+      // }
+    ]
+  }

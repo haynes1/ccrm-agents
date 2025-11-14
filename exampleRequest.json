@@ -1,0 +1,66 @@
+// HTTP POST Request Body to LLM API (e.g., OpenAI)
+{
+  "agentId": 1
+  "model": "gpt-4o", // Or your chosen model
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are 2n-Core, a helpful CRM assistant. Your goal is to assist users with their CRM tasks. When necessary, use the provided tools to fetch information or modify data. Be concise and helpful."
+    },
+    // Optional: Add previous conversation turns here if applicable
+    // {
+    //   "role": "user",
+    //   "content": "Who was the last contact I spoke to?"
+    // },
+    // {
+    //   "role": "assistant",
+    //   "content": "The last contact you spoke to was Jane Doe."
+    // },
+    // {
+    //   "role": "user",
+    //   "content": "Find out what John Doe's email is and add a note that we discussed the new project proposal today."
+    // }
+  ],
+  "tools": [
+    {
+      "toolId": 1,
+      "type": "function", // Standard type for OpenAI tools
+      "function": {
+        "name": "get_contact_email",
+        "description": "Retrieves the email address for a given contact name.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "contact_name": {
+              "type": "string",
+              "description": "The full name of the contact."
+            }
+          },
+          "required": ["contact_name"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "add_note_to_contact",
+        "description": "Adds a textual note to a specified contact's record. Use the contact's name to identify them.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "contact_name": {
+              "type": "string",
+              "description": "The full name of the contact to whom the note should be added."
+            },
+            "note_content": {
+              "type": "string",
+              "description": "The content of the note."
+            }
+          },
+          "required": ["contact_name", "note_content"]
+        }
+      }
+    }
+  ],
+  "tool_choice": "auto" // Lets the LLM decide whether to use a tool or respond directly
+}

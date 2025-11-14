@@ -1,0 +1,548 @@
+{
+  "agentId": "b476d137-fce5-4ee3-b053-e76de4de34cd",
+  "description": "the expert on data models. A capable advisor for when users are changing their data model. Can update object types, change fields, and has great knowledge of how to use CRMs to achieve business outcomes",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are part of the 2ndNature AI system, specializing in defining and modifying CRM data models.\n\n---\n\n### **Your Core Task:**\n\nYou have been activated because the system determined the user's query is about their **workspace** or **data model**. Your primary goal is to help the user create, update, delete, and understand the objects in their CRM. You will achieve this by using your toolset, your understanding of the user's business requirements, and their current data model.\n\nMost of your interactions will be about making specific changes to the data model or explaining how it works. When the user's request is unclear or high-level, you will guide them to define their needs.\n\n### **Core Concept: Static vs. Dynamic Objects**\n\nTo effectively model a CRM, it's crucial to distinguish between two types of objects. Use this framework to guide your questions and suggestions.\n\n*   **Static Objects:** These represent entities or information that you track but that don't progress through a defined lifecycle or series of stages. They can be updated, but they don't have a \"status\" that changes over time as part of a process.\n    *   **Examples:** `Contacts`, `Companies`, `Products`.\n*   **Dynamic Objects:** These represent records that move through a process, pipeline, or lifecycle. A key feature is tracking which stage each record is in.\n    *   **Examples:** `Deals` (progressing from 'New' to 'Won'/'Lost'), `Support Tickets` ('Open', 'In Progress', 'Closed'), `Job Applicants` ('Applied', 'Interviewing', 'Hired').\n\nWhen helping a user, especially with creating new objects, clarifying whether an object should be static or dynamic is a key first step.\n\n### **Action Protocol:**\n\n1.  **Triage the Request:**\n    *   Carefully analyze the user's request. If it is related to data modeling (creating/editing objects, fields, or relationships), proceed.\n    *   If the request is about managing individual records (e.g., \"create a new contact,\" \"update this company's address\") or any other out-of-scope task, use the `return_to_supervisor` tool immediately.\n\n2.  **Handle the Request:** Your approach depends on the user's query.\n\n    *   **A) For Specific C.R.U.D. Requests:**\n        *   If the user makes a direct and unambiguous request to create, update, or delete an object, field, or relationship (e.g., \"Create an object called 'Tasks'\"), your job is to execute it.\n        *   Execute the request directly using the appropriate tool (`createOneObject`, `updateOneObject`, etc.). After the tool call, inform the user what you have done.\n        *   When creating an object, you might ask clarifying questions based on the static vs. dynamic concept. For example: \"Sounds good. Will these 'Tasks' move through stages, like 'To Do', 'In Progress', and 'Done'?\" This helps determine if a pipeline/stages field is needed.\n\n    *   **B) For \"How-To\" or \"What's-This-For\" Questions:**\n        *   If the user asks about an object's purpose or how to use it, analyze it using the static/dynamic framework.\n        *   **Leverage the data model overview (`pageContext`)** to explain the object's role, its fields, and its relationships to other objects.\n        *   **Example:** \"The 'Deals' object is a dynamic object, designed to track potential sales from start to finish. You'd create a new 'Deal' for each opportunity, and then move it through stages like 'Qualification', 'Proposal Sent', and eventually 'Won' or 'Lost'.\"\n\n    *   **C) For Vague or High-Level Requests:**\n        *   If the user is unsure what they need (e.g., \"How should I set up my CRM for a real estate agency?\"), shift into a consultative role.\n        *   Don't jump into a rigid process. Instead, start a conversation to discover their needs.\n        *   **Ask what they need to track.** Use their business context. \"To get started, what are the most important things you need to keep track of in your real estate business? For instance, are you tracking `Properties`, `Clients`, `Showings`, or `Offers`?\"\n        *   For each item they mention, determine if it's static or dynamic. \"For `Properties`, do you want to just store information about them, or do you need to track their status through stages like 'Listed', 'Under Contract', and 'Sold'?\"\n        *   Based on this discussion, create the necessary objects with a recommended set of starter fields, then present the changes to the user for feedback. \"Based on what you've said, I've created a dynamic 'Properties' object with fields for 'Address', 'Price', and 'Status', and a static 'Clients' object for contact info. You can take a look and let me know if you'd like any adjustments.\"\n\n3.  **Implement Changes & Complete Your Turn:**\n    *   Call the necessary tools (`createOneObject`, `updateOneObject`, etc.) to enact the agreed-upon plan.\n    *   **IMPORTANT:** If you know you need to make multiple tool calls, bundle them and send them all at the same time. Sequential operation is bad.\n    *   Once you have completed your tasks, you **must** call the `end` tool to signal that your work is finished. This is a mandatory final step.\n\n---\n### **Tool Usage Notes:**\n\n*   **Fields and `inspectObject`:**\n    *   When proposing a new object, suggest a logical set of starter fields. This is better than asking the user to list them from scratch.\n    *   The `inspectObject` tool provides detailed JSON information about an object. This tool is **resource-intensive (high token usage) and should be used sparingly.**\n    *   **When to consider `inspectObject`:**\n        *   When you need specific field details for a newly created or modified object that aren't in the data model overview.\n        *   Before creating new fields, to check if similar fields already exist.\n    *   **Always prefer to work from the data model overview if possible.**\n\n*   **Relationships:**\n    *   Once objects and their key fields are defined, discuss and implement the relationships between them using the relation tools (`createOneRelation`, etc.)."
+    }
+  ],
+  "tools": [
+    {
+      "toolId": "0c0389e3-1873-4ba7-a4e0-2773c734c279",
+      "type": "function",
+      "function": {
+        "name": "inspectObject",
+        "description": "Gets a full json description of an object including the full json info for each of its fields and relations",
+        "parameters": {
+          "type": "function",
+          "toolId": "0c0389e3-1873-4ba7-a4e0-2773c734c279",
+          "function": {
+            "name": "inspectObject",
+            "parameters": {
+              "type": "object",
+              "required": [
+                "objectId"
+              ],
+              "properties": {
+                "objectId": {
+                  "type": "string",
+                  "description": "The unique identifier (UUID) of the object to be inspected. Required."
+                }
+              }
+            },
+            "description": "Gets a full json description of an object including the full json info for each of its fields and relations"
+          },
+          "internalApiPath": "/api/objects/delete",
+          "execution_location": "client"
+        }
+      },
+      "internalApiPath": "/api/objects/delete"
+    },
+    {
+      "toolId": "fec5faa2-1915-4972-a26d-fbc207c4dd64",
+      "type": "function",
+      "function": {
+        "name": "createOneObject",
+        "description": "Creates a new object metadata definition in the system.",
+        "parameters": {
+          "type": "function",
+          "toolId": "fec5faa2-1915-4972-a26d-fbc207c4dd64",
+          "function": {
+            "name": "createOneObject",
+            "parameters": {
+              "type": "object",
+              "required": [
+                "nameSingular",
+                "namePlural",
+                "labelSingular",
+                "labelPlural"
+              ],
+              "properties": {
+                "icon": {
+                  "type": "string",
+                  "description": "The icon representing the object. Optional."
+                },
+                "isActive": {
+                  "type": "boolean",
+                  "description": "Indicates if the object is active. Optional."
+                },
+                "isCustom": {
+                  "type": "boolean",
+                  "description": "Indicates if the object is a custom object. Optional."
+                },
+                "namePlural": {
+                  "type": "string",
+                  "description": "The unique plural name of the object (e.g., 'tickets'). Required."
+                },
+                "description": {
+                  "type": "string",
+                  "description": "A description of the object. Optional."
+                },
+                "labelPlural": {
+                  "type": "string",
+                  "description": "The user-facing plural label for the object (e.g., 'Tickets'). Required."
+                },
+                "isSearchable": {
+                  "type": "boolean",
+                  "description": "Indicates if the object is searchable. Optional."
+                },
+                "nameSingular": {
+                  "type": "string",
+                  "description": "The unique singular name of the object (e.g., 'ticket'). Required."
+                },
+                "labelSingular": {
+                  "type": "string",
+                  "description": "The user-facing singular label for the object (e.g., 'Ticket'). Required."
+                }
+              }
+            },
+            "description": "Creates a new object metadata definition in the system."
+          },
+          "internalApiPath": "/api/objects/create",
+          "execution_location": "client"
+        }
+      },
+      "internalApiPath": "/api/objects/create"
+    },
+    {
+      "toolId": "8afa737c-68e2-42b6-96fa-7db57e49f761",
+      "type": "function",
+      "function": {
+        "name": "updateOneObject",
+        "description": "Updates an existing object metadata definition in the system.",
+        "parameters": {
+          "type": "function",
+          "toolId": "8afa737c-68e2-42b6-96fa-7db57e49f761",
+          "function": {
+            "name": "updateOneObject",
+            "parameters": {
+              "type": "object",
+              "required": [
+                "idToUpdate",
+                "updatePayload"
+              ],
+              "properties": {
+                "idToUpdate": {
+                  "type": "string",
+                  "description": "The unique identifier (UUID) of the object to update. Required."
+                },
+                "updatePayload": {
+                  "type": "object",
+                  "required": [],
+                  "properties": {
+                    "icon": {
+                      "type": "string",
+                      "description": "The new icon representing the object. Optional."
+                    },
+                    "isActive": {
+                      "type": "boolean",
+                      "description": "Update if the object is active. Optional."
+                    },
+                    "isCustom": {
+                      "type": "boolean",
+                      "description": "Update if the object is a custom object. Optional."
+                    },
+                    "namePlural": {
+                      "type": "string",
+                      "description": "The new plural name of the object. Optional."
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "The new description of the object. Optional."
+                    },
+                    "labelPlural": {
+                      "type": "string",
+                      "description": "The new user-facing plural label for the object. Optional."
+                    },
+                    "isSearchable": {
+                      "type": "boolean",
+                      "description": "Update if the object is searchable. Optional."
+                    },
+                    "nameSingular": {
+                      "type": "string",
+                      "description": "The new singular name of the object. Optional."
+                    },
+                    "labelSingular": {
+                      "type": "string",
+                      "description": "The new user-facing singular label for the object. Optional."
+                    }
+                  },
+                  "description": "The payload containing fields to update for the object. Required."
+                }
+              }
+            },
+            "description": "Updates an existing object metadata definition in the system."
+          },
+          "internalApiPath": "/api/objects/update",
+          "execution_location": "client"
+        }
+      },
+      "internalApiPath": "/api/objects/update"
+    },
+    {
+      "toolId": "f30e7272-b3d4-4ee9-9dfd-be9af2ae62c4",
+      "type": "function",
+      "function": {
+        "name": "deleteOneObject",
+        "description": "Deactivates an object metadata definition from the system.",
+        "parameters": {
+          "type": "function",
+          "toolId": "f30e7272-b3d4-4ee9-9dfd-be9af2ae62c4",
+          "function": {
+            "name": "deleteOneObject",
+            "parameters": {
+              "type": "object",
+              "required": [
+                "idToDelete"
+              ],
+              "properties": {
+                "idToDelete": {
+                  "type": "string",
+                  "description": "The unique identifier (UUID) of the object to deactivate. Required."
+                }
+              }
+            },
+            "description": "Deactivates an object metadata definition from the system."
+          },
+          "internalApiPath": "/api/objects/delete",
+          "execution_location": "client"
+        }
+      },
+      "internalApiPath": "/api/objects/delete"
+    },
+    {
+      "toolId": "28c49805-ec65-4493-9aea-2d65d60abf3f",
+      "type": "function",
+      "function": {
+        "name": "createOneField",
+        "description": "Creates a new field definition for an object in the system.",
+        "parameters": {
+          "type": "function",
+          "toolId": "28c49805-ec65-4493-9aea-2d65d60abf3f",
+          "function": {
+            "name": "createOneField",
+            "parameters": {
+              "type": "object",
+              "required": [
+                "type",
+                "name",
+                "label",
+                "objectMetadataId"
+              ],
+              "properties": {
+                "icon": {
+                  "type": "string",
+                  "description": "The icon representing the field. Optional."
+                },
+                "name": {
+                  "type": "string",
+                  "description": "The unique programmatic name of the field. Required."
+                },
+                "type": {
+                  "type": "string",
+                  "description": "The data type of the field (e.g., 'TEXT', 'NUMBER', 'BOOLEAN', 'DATE'). Required."
+                },
+                "label": {
+                  "type": "string",
+                  "description": "The user-facing label for the field. Required."
+                },
+                "options": {
+                  "type": "object",
+                  "description": "Configuration options for the field (e.g., for dropdowns or picklists). Optional."
+                },
+                "isActive": {
+                  "type": "boolean",
+                  "description": "Indicates if the field is active. Optional."
+                },
+                "isCustom": {
+                  "type": "boolean",
+                  "description": "Indicates if the field is a custom field. Optional."
+                },
+                "settings": {
+                  "type": "object",
+                  "description": "Additional settings specific to the field type. Optional."
+                },
+                "isNullable": {
+                  "type": "boolean",
+                  "description": "Indicates if the field can have a null value. Optional."
+                },
+                "description": {
+                  "type": "string",
+                  "description": "A description of the field. Optional."
+                },
+                "defaultValue": {
+                  "type": "string",
+                  "description": "The default value for the field. Type may vary based on field 'type'. Optional."
+                },
+                "objectMetadataId": {
+                  "type": "string",
+                  "description": "The unique identifier (UUID) of the object this field belongs to. Required."
+                }
+              }
+            },
+            "description": "Creates a new field definition for an object in the system."
+          },
+          "internalApiPath": "/api/fields/create",
+          "execution_location": "client"
+        }
+      },
+      "internalApiPath": "/api/fields/create"
+    },
+    {
+      "toolId": "aa3191ed-e150-44ea-a55c-f3ec0195761e",
+      "type": "function",
+      "function": {
+        "name": "updateOneField",
+        "description": "Updates an existing field definition in the system.",
+        "parameters": {
+          "type": "function",
+          "toolId": "aa3191ed-e150-44ea-a55c-f3ec0195761e",
+          "function": {
+            "name": "updateOneField",
+            "parameters": {
+              "type": "object",
+              "required": [
+                "idToUpdate",
+                "updatePayload"
+              ],
+              "properties": {
+                "idToUpdate": {
+                  "type": "string",
+                  "description": "The unique identifier (UUID) of the field to update. Required."
+                },
+                "updatePayload": {
+                  "type": "object",
+                  "required": [],
+                  "properties": {
+                    "icon": {
+                      "type": "string",
+                      "description": "The new icon representing the field. Optional."
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "The new unique programmatic name of the field. Optional."
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "The new data type of the field. Optional."
+                    },
+                    "label": {
+                      "type": "string",
+                      "description": "The new user-facing label for the field. Optional."
+                    },
+                    "options": {
+                      "type": "object",
+                      "description": "New configuration options for the field. Optional."
+                    },
+                    "isActive": {
+                      "type": "boolean",
+                      "description": "Update if the field is active. Optional."
+                    },
+                    "isCustom": {
+                      "type": "boolean",
+                      "description": "Update if the field is a custom field. Optional."
+                    },
+                    "settings": {
+                      "type": "object",
+                      "description": "New additional settings specific to the field type. Optional."
+                    },
+                    "isNullable": {
+                      "type": "boolean",
+                      "description": "Update if the field can have a null value. Optional."
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "The new description of the field. Optional."
+                    },
+                    "defaultValue": {
+                      "type": "string",
+                      "description": "The new default value for the field. Type may vary. Optional."
+                    }
+                  },
+                  "description": "The payload containing fields to update for the field definition. Required."
+                }
+              }
+            },
+            "description": "Updates an existing field definition in the system."
+          },
+          "internalApiPath": "/api/fields/update",
+          "execution_location": "client"
+        }
+      },
+      "internalApiPath": "/api/fields/update"
+    },
+    {
+      "toolId": "ca900916-f599-4c3f-8fe4-2b0ac28ce503",
+      "type": "function",
+      "function": {
+        "name": "deleteOneField",
+        "description": "Deletes a field definition from the system.",
+        "parameters": {
+          "type": "function",
+          "toolId": "ca900916-f599-4c3f-8fe4-2b0ac28ce503",
+          "function": {
+            "name": "deleteOneField",
+            "parameters": {
+              "type": "object",
+              "required": [
+                "idToDelete"
+              ],
+              "properties": {
+                "idToDelete": {
+                  "type": "string",
+                  "description": "The unique identifier (UUID) of the field to delete. Required."
+                }
+              }
+            },
+            "description": "Deletes a field definition from the system."
+          },
+          "internalApiPath": "/api/fields/delete",
+          "execution_location": "client"
+        }
+      },
+      "internalApiPath": "/api/fields/delete"
+    },
+    {
+      "toolId": "f11b5bb3-8d37-4dc3-a519-b05f4a5feeb2",
+      "type": "function",
+      "function": {
+        "name": "createOneRelation",
+        "description": "Creates a new relationship definition between two objects.",
+        "parameters": {
+          "type": "function",
+          "toolId": "f11b5bb3-8d37-4dc3-a519-b05f4a5feeb2",
+          "function": {
+            "name": "createOneRelation",
+            "parameters": {
+              "type": "object",
+              "required": [
+                "relationType",
+                "fromObjectMetadataId",
+                "toObjectMetadataId",
+                "fromFieldMetadataId",
+                "toFieldMetadataId"
+              ],
+              "properties": {
+                "relationType": {
+                  "type": "string",
+                  "description": "The type of relationship (e.g., 'ONE_TO_MANY', 'MANY_TO_MANY'). Required."
+                },
+                "toFieldMetadataId": {
+                  "type": "string",
+                  "description": "The UUID of the field in the target object that the source field relates to (e.g., a primary key). Required."
+                },
+                "toObjectMetadataId": {
+                  "type": "string",
+                  "description": "The UUID of the target object in the relation. Required."
+                },
+                "fromFieldMetadataId": {
+                  "type": "string",
+                  "description": "The UUID of the field in the source object that defines the relation (e.g., a foreign key). Required."
+                },
+                "fromObjectMetadataId": {
+                  "type": "string",
+                  "description": "The UUID of the source object in the relation. Required."
+                }
+              }
+            },
+            "description": "Creates a new relationship definition between two objects."
+          },
+          "internalApiPath": "/api/relations/create",
+          "execution_location": "client"
+        }
+      },
+      "internalApiPath": "/api/relations/create"
+    },
+    {
+      "toolId": "f177e046-23ff-49a1-9a81-330b803d72bb",
+      "type": "function",
+      "function": {
+        "name": "updateOneRelation",
+        "description": "Updates an existing relationship definition.",
+        "parameters": {
+          "type": "function",
+          "toolId": "f177e046-23ff-49a1-9a81-330b803d72bb",
+          "function": {
+            "name": "updateOneRelation",
+            "parameters": {
+              "type": "object",
+              "required": [
+                "idToUpdate",
+                "updatePayload"
+              ],
+              "properties": {
+                "idToUpdate": {
+                  "type": "string",
+                  "description": "The unique identifier (UUID) of the relation to update. Required."
+                },
+                "updatePayload": {
+                  "type": "object",
+                  "required": [],
+                  "properties": {
+                    "relationType": {
+                      "type": "string",
+                      "description": "The new type of relationship. Optional."
+                    },
+                    "toFieldMetadataId": {
+                      "type": "string",
+                      "description": "The new UUID of the field in the target object for the relation. Optional."
+                    },
+                    "toObjectMetadataId": {
+                      "type": "string",
+                      "description": "The new UUID of the target object in the relation. Optional."
+                    },
+                    "fromFieldMetadataId": {
+                      "type": "string",
+                      "description": "The new UUID of the field in the source object for the relation. Optional."
+                    },
+                    "fromObjectMetadataId": {
+                      "type": "string",
+                      "description": "The new UUID of the source object in the relation. Optional."
+                    }
+                  },
+                  "description": "The payload containing fields to update for the relation. Required."
+                }
+              }
+            },
+            "description": "Updates an existing relationship definition."
+          },
+          "internalApiPath": "/api/relations/update",
+          "execution_location": "client"
+        }
+      },
+      "internalApiPath": "/api/relations/update"
+    },
+    {
+      "toolId": "df306ffe-f69b-4614-895e-90cd5b513f7e",
+      "type": "function",
+      "function": {
+        "name": "deleteOneRelation",
+        "description": "Deletes a relationship definition from the system.",
+        "parameters": {
+          "type": "function",
+          "toolId": "df306ffe-f69b-4614-895e-90cd5b513f7e",
+          "function": {
+            "name": "deleteOneRelation",
+            "parameters": {
+              "type": "object",
+              "required": [
+                "idToDelete"
+              ],
+              "properties": {
+                "idToDelete": {
+                  "type": "string",
+                  "description": "The unique identifier (UUID) of the relation to delete. Required."
+                }
+              }
+            },
+            "description": "Deletes a relationship definition from the system."
+          },
+          "internalApiPath": "/api/relations/delete",
+          "execution_location": "client"
+        }
+      },
+      "internalApiPath": "/api/relations/delete"
+    }
+  ]
+}
