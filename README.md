@@ -1,4 +1,4 @@
-# 2n Agents
+# cc Agents
 
 A comprehensive system for managing and deploying AI agents and agentic workflows with configurable tools and capabilities.
 
@@ -7,7 +7,7 @@ A comprehensive system for managing and deploying AI agents and agentic workflow
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd 2n-agents
+   cd ccrm-agents
    ```
 
 2. **Set up your environment**
@@ -71,7 +71,7 @@ An **Agentic Workflow** is a state machine that:
 ## 📁 Repository Structure
 
 ```
-2n-agents/
+ccrm-agents/
 ├── definitions/           # Source of truth for agents and workflows
 │   ├── System/           # System-scoped definitions
 │   │   ├── Agents/       # System agents

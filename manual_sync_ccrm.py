@@ -10,7 +10,7 @@ import psycopg2
 DB_URL = "postgresql://postgres:postgres@localhost:5438/default?sslmode=disable"
 
 # Agents directory
-AGENTS_DIR = "/Users/giza/code/2n-agents/definitions/System/Agents"
+AGENTS_DIR = "/Users/giza/code/ccrm-agents/definitions/System/Agents"
 
 def main():
     conn = psycopg2.connect(DB_URL)
@@ -45,7 +45,7 @@ def main():
             description,
             system_prompt,
             'claude-sonnet-4-20250514',  # Default model
-            agent_name == '2n'  # Make 2n the default
+            agent_name == 'cc'  # Make cc the default
         ))
 
     # Insert agents

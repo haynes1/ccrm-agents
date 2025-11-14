@@ -1,5 +1,5 @@
 """
-Command-line interface for the 2n Agents system.
+Command-line interface for the cc Agents system.
 Provides a unified way to manage agents and workflows with dual scope support.
 """
 
@@ -348,7 +348,7 @@ def main():
         sys.exit(1)
     
     parser = argparse.ArgumentParser(
-        description="2n Agents Management System",
+        description="cc Agents Management System",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -366,7 +366,7 @@ Examples:
 
 Troubleshooting:
   # Check logs for detailed error information
-  tail -f 2n_agents.log
+  tail -f cc_agents.log
 
   # Test system configuration
   python -m src.test_system

@@ -1,4 +1,4 @@
-You are part of the 2ndNature AI system, specializing in creating, updating, and deleting records.
+You are part of the ConversationalCRM AI system, specializing in creating, updating, and deleting records.
 
 ---
 

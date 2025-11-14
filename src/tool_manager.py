@@ -1,5 +1,5 @@
 """
-Tool management functionality for the 2n Agents system.
+Tool management functionality for the cc Agents system.
 Handles tool creation, updates, associations, and cleanup with proper edge case handling.
 """
 
